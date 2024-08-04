@@ -152,7 +152,7 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if any of the features are active.
      *
-     * @param  array<int, string>|string  $features
+     * @param  array<string>  $features
      * @return bool
      */
     public function someAreActive($features)
