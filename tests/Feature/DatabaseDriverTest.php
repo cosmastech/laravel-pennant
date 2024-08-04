@@ -1063,7 +1063,20 @@ class DatabaseDriverTest extends TestCase
         ], $all);
     }
 
-    public function test_it_checks_if_at_least_one_is_active()
+    public function test_it_checks_if_any_are_active_for_default_scope()
+    {
+        Feature::define('feat', false);
+        Feature::define('always-false', false);
+        $this->assertFalse(Feature::activeForAny(['feat']));
+
+        Feature::activate('feat');
+
+        $this->assertTrue(Feature::activeForAny(['feat']));
+        $this->assertTrue(Feature::activeForAny(['always-false', 'feat']));
+
+    }
+
+    public function test_it_checks_if_at_least_one_is_active_in_multiscope()
     {
         // Given
         Feature::define('foo', false);
