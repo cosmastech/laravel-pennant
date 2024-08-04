@@ -1063,6 +1063,24 @@ class DatabaseDriverTest extends TestCase
         ], $all);
     }
 
+    public function test_it_checks_if_at_least_one_is_active()
+    {
+        // Given
+        Feature::define('foo', false);
+
+        // assert pre-condition
+        $this->assertFalse(Feature::for(['tim', 'taylor'])->activeForAny('foo'));
+
+        // And
+        Feature::for(['tim'])->activate('foo');
+
+        // When
+        $result = Feature::for(['taylor', 'tim'])->activeForAny(['foo', 'bar']);
+
+        // Then
+        $this->assertTrue($result);
+    }
+
     public function test_it_handles_multiscope_checks()
     {
         Feature::define('foo', false);

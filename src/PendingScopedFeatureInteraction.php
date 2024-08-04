@@ -152,7 +152,7 @@ class PendingScopedFeatureInteraction
     /**
      * Determine if any of the features are active.
      *
-     * @param  array<string>  $features
+     * @param  array<int, string>|string  $features
      * @return bool
      */
     public function someAreActive($features)
@@ -161,6 +161,21 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
+                ->some(fn ($feature) => $this->driver->get($feature, $scope) !== false));
+    }
+
+    /**
+     * Determine if even one feature is active for any of the given scopes.
+     *
+     * @param array<int, string>|string $features
+     * @return bool
+     */
+    public function activeForAny($features)
+    {
+        $this->loadMissing($features);
+
+        return Collection::make($this->scope())
+            ->some(fn ($scope) => Collection::make($features)
                 ->some(fn ($feature) => $this->driver->get($feature, $scope) !== false));
     }
 
