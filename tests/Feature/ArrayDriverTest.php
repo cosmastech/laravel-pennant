@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Lottery;
 use Laravel\Pennant\Contracts\FeatureScopeable;
-use Laravel\Pennant\Drivers\Decorator;
 use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
