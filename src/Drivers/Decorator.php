@@ -189,6 +189,8 @@ class Decorator implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Determine if the resolver can handle the scope.
+     *
      * @param  callable  $resolver
      * @param  mixed  $scope
      * @return bool
