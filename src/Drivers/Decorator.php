@@ -180,7 +180,7 @@ class Decorator implements CanListStoredFeatures, Driver
         if ($function->getNumberOfParameters() > 0) {
             $type = $function->getParameters()[0]->getType();
 
-            if ($type && ! is_a($scope, $type->getName())) {
+            if ($type && ! $type->isBuiltin() && ! is_a($scope, $type->getName())) {
                 Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
 
                 return new FeatureDoesNotMatchScope;

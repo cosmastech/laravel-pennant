@@ -1575,9 +1575,9 @@ class DatabaseDriverTest extends TestCase
     {
         // Given features
         Feature::define('for-teams', fn(Team $team) => true);
-        //Feature::define('for-users', fn(User $user) => true);
-        //Feature::define('for-nullable-users', fn(?User $user) => false);
-        //Feature::define('for-null', fn() => false);
+        Feature::define('for-users', fn(User $user) => true);
+        Feature::define('for-nullable-users', fn(?User $user) => false);
+        Feature::define('for-null', fn() => false);
 
         // And we are faking events
         Event::fake([FeatureUnavailableForScope::class]);
@@ -1588,7 +1588,6 @@ class DatabaseDriverTest extends TestCase
         // When
         $features = Feature::for($user)->all();
 
-        dd($features);
         // Then we only see scopes relevant to the User type
         $this->assertEqualsCanonicalizing(
             [

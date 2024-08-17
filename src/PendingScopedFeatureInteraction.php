@@ -148,7 +148,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($features)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
+            ->every(fn ($bits) => ($result = $this->driver->get(...$bits)) !== false && ! $result instanceof FeatureDoesNotMatchScope);
     }
 
     /**
