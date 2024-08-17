@@ -24,7 +24,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->setDriver();
     }
 
-    public function testCanGetAllWhenFeaturesAreDefinedForDifferentScopes(): void
+    public function test_varyingScopedFeatures_all_onlyReturnsFeaturesForTheRequestedScope(): void
     {
         // Given features of varying scopes
         Feature::define('for-teams', fn(Team $team) => true);
@@ -59,7 +59,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         });
     }
 
-    public function testInvalidScopedFeatureReturnsFalse(): void
+    public function test_scopedFeatureDoesNotBelongToScope_active_returnsFalse(): void
     {
         // Given scope belonging to a Team scope
         Feature::define('yooo', fn(Team $team) => true);
@@ -71,7 +71,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->assertFalse($result);
     }
 
-    public function testValuesReturnsFalseForFeaturesWhichDoNotBelongToScope(): void
+    public function test_featuresNotBelongingToRequestedScope_values_ReturnsFalseForThoseScopes(): void
     {
         // Given features with varying scopes
         Feature::define('foo', fn(User $user) => true);
@@ -95,7 +95,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         ], $features);
     }
 
-    public function testSomeAreActiveWithMismatchedScopeTreatsAsFalse(): void
+    public function test_featuresNotBelongingToScope_someAreActive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
         Feature::define('for-teams', fn(Team $team) => true);
@@ -108,7 +108,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->assertFalse($result);
     }
 
-    public function testAllAreActiveTreatsMismatchedScopeAsFalse(): void
+    public function test_featuresNotBelongingToScope_allAreActive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
         Feature::define('for-team', fn(Team $team) => true);
@@ -121,7 +121,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->assertFalse($result);
     }
 
-    public function testSomeAreInactiveWithMismatchedScopeTreatsAsFalse(): void
+    public function test_featuresNotBelongingToScope_someAreInactive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
         Feature::define('for-teams', fn(Team $team) => true);
@@ -137,7 +137,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->assertTrue($result);
     }
 
-    public function testAllAreInactiveWithMismatchedScope(): void
+    public function test_featuresNotBelongingToScope_allAreInactive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
         Feature::define('for-teams', fn(Team $team) => true);
@@ -151,7 +151,7 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
         $this->assertTrue($result);
     }
 
-    public function test_mismatchedScopes_eagerLoaded_returnsFalseThatScopeIsActive(): void
+    public function test_featuresNotBelongingToScope_eagerLoaded_returnsFalseThatScopeIsActive(): void
     {
         // Given
         Feature::define('for-teams', fn(Team $team) => true);

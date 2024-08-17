@@ -309,10 +309,6 @@ class PendingScopedFeatureInteraction
      */
     protected function fromRaw($value)
     {
-        if ($value instanceof FeatureDoesNotMatchScope) {
-            return false;
-        }
-
-        return $value;
+        return $value instanceof FeatureDoesNotMatchScope ? false : $value;
     }
 }
