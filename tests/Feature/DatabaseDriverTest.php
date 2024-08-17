@@ -19,6 +19,7 @@ use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
@@ -26,6 +27,7 @@ use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
 use RuntimeException;
 use Tests\TestCase;
+use Workbench\App\Models\Team;
 use Workbench\App\Models\User;
 use Workbench\Database\Factories\UserFactory;
 
@@ -1567,6 +1569,53 @@ class DatabaseDriverTest extends TestCase
             'value' => 'true',
             'name' => 'foo',
         ], $records[3]);
+    }
+
+    public function testCanGetAllWhenFeaturesAreDefinedForDifferentScopes(): void
+    {
+        // Given features
+        Feature::define('for-teams', fn(Team $team) => true);
+        //Feature::define('for-users', fn(User $user) => true);
+        //Feature::define('for-nullable-users', fn(?User $user) => false);
+        //Feature::define('for-null', fn() => false);
+
+        // And we are faking events
+        Event::fake([FeatureUnavailableForScope::class]);
+
+        // And we have a user
+        $user = new User;
+
+        // When
+        $features = Feature::for($user)->all();
+
+        dd($features);
+        // Then we only see scopes relevant to the User type
+        $this->assertEqualsCanonicalizing(
+            [
+                'for-users' => true,
+                'for-null' => false,
+                'for-nullable-users' => false,
+            ],
+            $features
+        );
+
+        Event::assertDispatchedTimes(FeatureUnavailableForScope::class, 1);
+        Event::assertDispatched(function (FeatureUnavailableForScope $event) use ($user) {
+            return $event->feature === 'for-teams'
+                && $event->scope === $user;
+        });
+    }
+
+    public function testInvalidScopedFeatureReturnsFalse(): void
+    {
+        // Given
+        Feature::define('yooo', fn(Team $team) => true);
+
+        // When
+        $result = Feature::for(new User)->active('yooo');
+
+        // Then
+        $this->assertFalse($result);
     }
 }
 

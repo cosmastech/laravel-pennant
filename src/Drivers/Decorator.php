@@ -18,12 +18,15 @@ use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\FeatureDoesNotMatchScope;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
+use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionFunction;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
@@ -78,6 +81,8 @@ class Decorator implements CanListStoredFeatures, Driver
      * @var array<string, mixed>
      */
     protected $nameMap = [];
+
+
 
     /**
      * Create a new driver decorator instance.
@@ -170,6 +175,18 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function resolve($feature, $resolver, $scope)
     {
+        $function = new ReflectionClosure(Closure::fromCallable($resolver));
+
+        if ($function->getNumberOfParameters() > 0) {
+            $type = $function->getParameters()[0]->getType();
+
+            if ($type && ! is_a($scope, $type->getName())) {
+                Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
+
+                return new FeatureDoesNotMatchScope;
+            }
+        }
+
         $value = $resolver($scope);
 
         $value = $value instanceof Lottery ? $value() : $value;
@@ -193,7 +210,6 @@ class Decorator implements CanListStoredFeatures, Driver
             ! $function->getParameters()[0]->hasType() ||
             $function->getParameters()[0]->getType()->allowsNull();
     }
-
     /**
      * Retrieve the names of all defined features.
      *

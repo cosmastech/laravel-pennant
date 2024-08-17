@@ -3,6 +3,7 @@
 namespace Laravel\Pennant;
 
 use Illuminate\Support\Collection;
+use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use RuntimeException;
 
 class PendingScopedFeatureInteraction
@@ -110,6 +111,7 @@ class PendingScopedFeatureInteraction
             ->mapWithKeys(fn ($feature) => [
                 $this->driver->name($feature) => $this->driver->get($feature, $this->scope()[0]),
             ])
+            ->reject(fn ($feature) => $feature instanceof FeatureDoesNotMatchScope)
             ->all();
     }
 

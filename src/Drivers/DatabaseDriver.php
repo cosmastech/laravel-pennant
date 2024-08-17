@@ -13,6 +13,7 @@ use Laravel\Pennant\Contracts\CanListStoredFeatures;
 use Laravel\Pennant\Contracts\Driver;
 use Laravel\Pennant\Events\UnknownFeatureResolved;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\FeatureDoesNotMatchScope;
 use RuntimeException;
 use stdClass;
 
@@ -162,7 +163,7 @@ class DatabaseDriver implements CanListStoredFeatures, Driver
             }
 
             return with($this->resolveValue($feature, $scope), function ($value) use ($feature, $scope, $inserts) {
-                if ($value === $this->unknownFeatureValue) {
+                if ($value === $this->unknownFeatureValue || $value instanceof FeatureDoesNotMatchScope) {
                     return false;
                 }
 
