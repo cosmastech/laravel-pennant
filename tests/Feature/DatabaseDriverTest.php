@@ -1616,6 +1616,26 @@ class DatabaseDriverTest extends TestCase
         // Then
         $this->assertFalse($result);
     }
+
+    public function testValuesReturnsFalseForFeaturesWhichDoNotBelongToScope(): void
+    {
+        // Given
+        Feature::define('foo', fn(User $user) => true);
+        Feature::define('bar', fn(Team $team) => true);
+        Feature::define('zed', fn(mixed $v) => true);
+        Feature::define('elephant', fn($v) => true);
+
+        // When
+        $features = Feature::for(new User)->values(['foo', 'bar', 'zed', 'elephant']);
+
+        // Then
+        $this->assertEqualsCanonicalizing([
+            'foo' => true,
+            'bar' => false,
+            'zed' => true,
+            'elephant' => true,
+        ], $features);
+    }
 }
 
 class UnregisteredFeature

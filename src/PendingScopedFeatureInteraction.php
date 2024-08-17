@@ -101,6 +101,22 @@ class PendingScopedFeatureInteraction
      */
     public function values($features)
     {
+        return Collection::make($this->rawValues($features))
+            ->mapWithKeys(function($value, $key) {
+                $value = $value instanceof FeatureDoesNotMatchScope ? false : $value;
+                return [$key => $value];
+            })
+            ->all();
+    }
+
+    /**
+     * Get the values of the flag(s) without replacing FeatureDoesNotMatchScope values.
+     *
+     * @param array<string> $features
+     * @return array<string, mixed>
+     */
+    protected function rawValues($features)
+    {
         if (count($this->scope()) > 1) {
             throw new RuntimeException('It is not possible to retrieve the values for multiple scopes.');
         }
@@ -111,7 +127,6 @@ class PendingScopedFeatureInteraction
             ->mapWithKeys(fn ($feature) => [
                 $this->driver->name($feature) => $this->driver->get($feature, $this->scope()[0]),
             ])
-            ->reject(fn ($feature) => $feature instanceof FeatureDoesNotMatchScope)
             ->all();
     }
 
@@ -122,7 +137,9 @@ class PendingScopedFeatureInteraction
      */
     public function all()
     {
-        return $this->values($this->driver->defined());
+        return Collection::make($this->rawValues($this->driver->defined()))
+            ->reject(fn ($feature) => $feature instanceof FeatureDoesNotMatchScope)
+            ->all();
     }
 
     /**
