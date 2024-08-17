@@ -176,7 +176,7 @@ class Decorator implements CanListStoredFeatures, Driver
         if (! $this->isResolverValidForScope($resolver, $scope)) {
             Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
 
-            return new FeatureDoesNotMatchScope;
+            return FeatureDoesNotMatchScope::instance();
         }
 
         $value = $resolver($scope);

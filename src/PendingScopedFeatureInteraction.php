@@ -110,7 +110,7 @@ class PendingScopedFeatureInteraction
      * @param array<string> $features
      * @return array<string, mixed>
      */
-    protected function rawValues($features)
+    public function rawValues($features)
     {
         if (count($this->scope()) > 1) {
             throw new RuntimeException('It is not possible to retrieve the values for multiple scopes.');

@@ -5,6 +5,7 @@ namespace Tests\Feature\PendingScopedFeatureInteraction;
 use Illuminate\Support\Facades\Event;
 use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Feature;
+use Laravel\Pennant\FeatureDoesNotMatchScope;
 use Tests\TestCase;
 use Workbench\App\Models\Team;
 use Workbench\App\Models\User;
@@ -166,5 +167,21 @@ abstract class AbstractPendingScopedFeatureInteraction extends TestCase
 
         // Then
         $this->assertFalse($result);
+    }
+
+    public function test_featuresNotBelongingToScope_rawValues_doesNotReplaceFeatureDoesNotMatchScope(): void
+    {
+        // Given
+        Feature::define('for-string', fn(string $str) => true);
+        Feature::define('for-user', fn(User $user) => true);
+        Feature::define('for-null-scope', fn() => false);
+
+        // When
+        $rawValues = Feature::for(new User)->rawValues(['for-string', 'for-user', 'for-null-scope']);
+
+        // Then
+        $this->assertSame(FeatureDoesNotMatchScope::instance(), $rawValues['for-string']);
+        $this->assertTrue($rawValues['for-user']);
+        $this->assertFalse($rawValues['for-null-scope']);
     }
 }
