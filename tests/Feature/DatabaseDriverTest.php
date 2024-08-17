@@ -1624,9 +1624,11 @@ class DatabaseDriverTest extends TestCase
         Feature::define('bar', fn(Team $team) => true);
         Feature::define('zed', fn(mixed $v) => true);
         Feature::define('elephant', fn($v) => true);
+        Feature::define('cat', fn(array $t) => true);
+        Feature::define('woof', fn(string $str) => true);
 
         // When
-        $features = Feature::for(new User)->values(['foo', 'bar', 'zed', 'elephant']);
+        $features = Feature::for(new User)->values(['foo', 'bar', 'zed', 'elephant', 'cat', 'woof']);
 
         // Then
         $this->assertEqualsCanonicalizing([
@@ -1634,6 +1636,8 @@ class DatabaseDriverTest extends TestCase
             'bar' => false,
             'zed' => true,
             'elephant' => true,
+            'cat' => false,
+            'woof' => false,
         ], $features);
     }
 }

@@ -189,8 +189,8 @@ class Decorator implements CanListStoredFeatures, Driver
     }
 
     /**
-     * @param callable $resolver
-     * @param mixed $scope
+     * @param  callable  $resolver
+     * @param  mixed  $scope
      * @return bool
      */
     protected function isResolverValidForScope($resolver, $scope)
@@ -205,13 +205,15 @@ class Decorator implements CanListStoredFeatures, Driver
             return true;
         }
 
-        $type = $function->getParameters()[0]->getType();
-
-        if ($type && (! $type->isBuiltin() && ! is_a($scope, $type->getName()))) {
-            return false;
+        if (! $type = $function->getParameters()[0]->getType()) {
+             return true;
         }
 
-        return true;
+        if (($name = $type->getName()) === 'mixed') {
+            return true;
+        }
+
+        return is_a($scope, $name);
     }
 
     /**
@@ -230,6 +232,7 @@ class Decorator implements CanListStoredFeatures, Driver
             ! $function->getParameters()[0]->hasType() ||
             $function->getParameters()[0]->getType()->allowsNull();
     }
+
     /**
      * Retrieve the names of all defined features.
      *
