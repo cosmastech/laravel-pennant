@@ -82,8 +82,6 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected $nameMap = [];
 
-
-
     /**
      * Create a new driver decorator instance.
      *
@@ -175,16 +173,10 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function resolve($feature, $resolver, $scope)
     {
-        $function = new ReflectionClosure(Closure::fromCallable($resolver));
+        if (! $this->isResolverValidForScope($resolver, $scope)) {
+            Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
 
-        if ($function->getNumberOfParameters() > 0) {
-            $type = $function->getParameters()[0]->getType();
-
-            if ($type && ! $type->isBuiltin() && ! is_a($scope, $type->getName())) {
-                Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
-
-                return new FeatureDoesNotMatchScope;
-            }
+            return new FeatureDoesNotMatchScope;
         }
 
         $value = $resolver($scope);
@@ -197,14 +189,42 @@ class Decorator implements CanListStoredFeatures, Driver
     }
 
     /**
+     * @param callable $resolver
+     * @param mixed $scope
+     * @return bool
+     */
+    protected function isResolverValidForScope($resolver, $scope)
+    {
+        $function = new ReflectionClosure(Closure::fromCallable($resolver));
+
+        if ($function->getNumberOfParameters() === 0) {
+            return true;
+        }
+
+        if ($scope === null && $this->canHandleNullScope($function)) {
+            return true;
+        }
+
+        $type = $function->getParameters()[0]->getType();
+
+        if ($type && (! $type->isBuiltin() && ! is_a($scope, $type->getName()))) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
      * Determine if the resolver accepts null scope.
      *
-     * @param  callable  $resolver
+     * @param  callable|ReflectionFunction  $resolver
      * @return bool
      */
     protected function canHandleNullScope($resolver)
     {
-        $function = new ReflectionFunction(Closure::fromCallable($resolver));
+        $function = $resolver instanceof ReflectionFunction
+            ? $resolver
+            : new ReflectionFunction(Closure::fromCallable($resolver));
 
         return $function->getNumberOfParameters() === 0 ||
             ! $function->getParameters()[0]->hasType() ||
