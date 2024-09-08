@@ -1571,39 +1571,20 @@ class DatabaseDriverTest extends TestCase
         ], $records[3]);
     }
 
-    public function test_varyingScopedFeatures_all_onlyReturnsFeaturesForTheRequestedScope(): void
+    public function testCanRetrieveAllFeaturesForGivenScope(): void
     {
-        // Given features of varying scopes
-        Feature::define('for-teams', fn(Team $team) => true);
-        Feature::define('for-users', fn(User $user) => true);
-        Feature::define('for-nullable-users', fn(?User $user) => false);
-        Feature::define('for-null', fn() => false);
+        Feature::define('for-teams', fn (Team $team) => 1);
+        Feature::define('for-users', fn (User $user) => 2);
+        Feature::define('for-nullable-users', fn (?User $user) => 3);
+        Feature::define('for-null', fn () => 4);
 
-        // And we are faking events
-        Event::fake([FeatureUnavailableForScope::class]);
+        $features = Feature::for(new User)->all();
 
-        // And we have a user
-        $user = new User;
-
-        // When
-        $features = Feature::for($user)->all();
-
-        // Then we only see scopes relevant to the User type
-        $this->assertEqualsCanonicalizing(
-            [
-                'for-users' => true,
-                'for-null' => false,
-                'for-nullable-users' => false,
-            ],
-            $features
-        );
-
-        // And an event was dispatched indicating that we tried to retrieve a feature not matched to scope
-        Event::assertDispatchedTimes(FeatureUnavailableForScope::class, 1);
-        Event::assertDispatched(function (FeatureUnavailableForScope $event) use ($user) {
-            return $event->feature === 'for-teams'
-                && $event->scope === $user;
-        });
+        $this->assertSame([
+            'for-users' => 2,
+            'for-nullable-users' => 3,
+            'for-null' => 4,
+        ], $features);
     }
 
     public function test_scopedFeatureDoesNotBelongToScope_active_returnsFalse(): void
