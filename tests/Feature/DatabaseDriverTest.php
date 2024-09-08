@@ -1585,18 +1585,18 @@ class DatabaseDriverTest extends TestCase
             'for-nullable-users' => 3,
             'for-null' => 4,
         ], $features);
+        $this->assertCount(2, DB::getQueryLog());
     }
 
     public function test_scopedFeatureDoesNotBelongToScope_active_returnsFalse(): void
     {
-        // Given scope belonging to a Team scope
-        Feature::define('yooo', fn (Team $team) => true);
+        Feature::define('for-teams', fn (Team $team) => true);
 
-        // When attempting to fetch that feature for a User scope
-        $result = Feature::for(new User)->active('yooo');
+        $result = Feature::for(new User)->active('for-teams');
 
-        // Then
         $this->assertFalse($result);
+        $this->assertCount(1, DB::getQueryLog());
+        $this->assertNull(DB::table('features')->first());
     }
 
     public function test_featuresNotBelongingToRequestedScope_values_ReturnsFalseForThoseScopes(): void
