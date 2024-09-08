@@ -9,15 +9,13 @@ class FeatureDoesNotMatchScope
 {
     protected static FeatureDoesNotMatchScope $instance;
 
-    protected function __construct()
-    {
-    }
+    protected function __construct() {}
 
     /**
      * @return self
      */
     public static function instance()
     {
-        return self::$instance ??= new self();
+        return self::$instance ??= new self;
     }
 }

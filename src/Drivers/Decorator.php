@@ -208,7 +208,7 @@ class Decorator implements CanListStoredFeatures, Driver
         }
 
         if (! $type = $function->getParameters()[0]->getType()) {
-             return true;
+            return true;
         }
 
         if (($name = $type->getName()) === 'mixed') {

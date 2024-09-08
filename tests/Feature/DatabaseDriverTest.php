@@ -18,8 +18,8 @@ use Laravel\Pennant\Events\AllFeaturesPurged;
 use Laravel\Pennant\Events\DynamicallyRegisteringFeatureClass;
 use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
-use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeaturesPurged;
+use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
@@ -1590,7 +1590,7 @@ class DatabaseDriverTest extends TestCase
     public function test_scopedFeatureDoesNotBelongToScope_active_returnsFalse(): void
     {
         // Given scope belonging to a Team scope
-        Feature::define('yooo', fn(Team $team) => true);
+        Feature::define('yooo', fn (Team $team) => true);
 
         // When attempting to fetch that feature for a User scope
         $result = Feature::for(new User)->active('yooo');
@@ -1602,12 +1602,12 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToRequestedScope_values_ReturnsFalseForThoseScopes(): void
     {
         // Given features with varying scopes
-        Feature::define('foo', fn(User $user) => true);
-        Feature::define('bar', fn(Team $team) => true);
-        Feature::define('zed', fn(mixed $v) => true);
-        Feature::define('elephant', fn($v) => true);
-        Feature::define('cat', fn(array $t) => true);
-        Feature::define('woof', fn(string $str) => true);
+        Feature::define('foo', fn (User $user) => true);
+        Feature::define('bar', fn (Team $team) => true);
+        Feature::define('zed', fn (mixed $v) => true);
+        Feature::define('elephant', fn ($v) => true);
+        Feature::define('cat', fn (array $t) => true);
+        Feature::define('woof', fn (string $str) => true);
 
         // When
         $features = Feature::for(new User)->values(['foo', 'bar', 'zed', 'elephant', 'cat', 'woof']);
@@ -1626,8 +1626,8 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_someAreActive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
-        Feature::define('for-teams', fn(Team $team) => true);
-        Feature::define('for-nullable', fn() => false);
+        Feature::define('for-teams', fn (Team $team) => true);
+        Feature::define('for-nullable', fn () => false);
 
         // When
         $result = Feature::for(new User)->someAreActive(['for-teams', 'for-nullable']);
@@ -1639,8 +1639,8 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_allAreActive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
-        Feature::define('for-team', fn(Team $team) => true);
-        Feature::define('for-user', fn(User $user) => true);
+        Feature::define('for-team', fn (Team $team) => true);
+        Feature::define('for-user', fn (User $user) => true);
 
         // When
         $result = Feature::for(new User)->allAreActive(['for-team', 'for-user']);
@@ -1652,13 +1652,13 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_someAreInactive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
-        Feature::define('for-teams', fn(Team $team) => true);
-        Feature::define('for-user', fn(User $user) => true);
-        Feature::define('for-null-scope', fn() => true);
+        Feature::define('for-teams', fn (Team $team) => true);
+        Feature::define('for-user', fn (User $user) => true);
+        Feature::define('for-null-scope', fn () => true);
 
         // When
         $result = Feature::for(new User)->someAreInactive([
-            'for-teams', 'for-user', 'for-null-scope'
+            'for-teams', 'for-user', 'for-null-scope',
         ]);
 
         // Then
@@ -1668,9 +1668,9 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_allAreInactive_treatsScopesAsFalse(): void
     {
         // Given features with varying scopes
-        Feature::define('for-teams', fn(Team $team) => true);
-        Feature::define('for-user', fn(User $user) => false);
-        Feature::define('for-null-scope', fn() => false);
+        Feature::define('for-teams', fn (Team $team) => true);
+        Feature::define('for-user', fn (User $user) => false);
+        Feature::define('for-null-scope', fn () => false);
 
         // When
         $result = Feature::for(new User)->allAreInactive(['for-teams', 'for-user', 'for-null-scope']);
@@ -1682,9 +1682,9 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_eagerLoaded_returnsFalseThatScopeIsActive(): void
     {
         // Given
-        Feature::define('for-teams', fn(Team $team) => true);
-        Feature::define('for-user', fn(User $user) => false);
-        Feature::define('for-null-scope', fn() => false);
+        Feature::define('for-teams', fn (Team $team) => true);
+        Feature::define('for-user', fn (User $user) => false);
+        Feature::define('for-null-scope', fn () => false);
 
         // And we have eager loaded scopes
         Feature::for([$user = new User])->load(['for-teams']);
@@ -1699,9 +1699,9 @@ class DatabaseDriverTest extends TestCase
     public function test_featuresNotBelongingToScope_rawValues_doesNotReplaceFeatureDoesNotMatchScope(): void
     {
         // Given
-        Feature::define('for-string', fn(string $str) => true);
-        Feature::define('for-user', fn(User $user) => true);
-        Feature::define('for-null-scope', fn() => false);
+        Feature::define('for-string', fn (string $str) => true);
+        Feature::define('for-user', fn (User $user) => true);
+        Feature::define('for-null-scope', fn () => false);
 
         // When
         $rawValues = Feature::for(new User)->rawValues(['for-string', 'for-user', 'for-null-scope']);

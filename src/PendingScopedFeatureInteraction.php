@@ -100,14 +100,14 @@ class PendingScopedFeatureInteraction
     public function values($features)
     {
         return Collection::make($this->rawValues($features))
-            ->mapWithKeys(fn($value, $key) => [$key => $this->fromRaw($value)])
+            ->mapWithKeys(fn ($value, $key) => [$key => $this->fromRaw($value)])
             ->all();
     }
 
     /**
      * Get the values of the flag(s) without replacing FeatureDoesNotMatchScope values.
      *
-     * @param array<string> $features
+     * @param  array<string>  $features
      * @return array<string, mixed>
      */
     public function rawValues($features)
