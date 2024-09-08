@@ -1573,23 +1573,28 @@ class DatabaseDriverTest extends TestCase
 
     public function testCanRetrieveAllFeaturesForGivenScope(): void
     {
-        Feature::define('for-teams', fn (Team $team) => 1);
-        Feature::define('for-users', fn (User $user) => 2);
-        Feature::define('for-nullable-users', fn (?User $user) => 3);
-        Feature::define('for-null', fn () => 4);
+        Feature::define('user', fn (User $user) => 1);
+        Feature::define('nullable-user', fn (?User $user) => 2);
+        Feature::define('team', fn (Team $team) => 3);
+        Feature::define('mixed', fn (mixed $v) => 4);
+        Feature::define('none', fn ($v) => 5);
+        Feature::define('array', fn (array $t) => 6);
+        Feature::define('string', fn (string $str) => 7);
 
         $features = Feature::for(new User)->all();
 
         $this->assertSame([
-            'for-users' => 2,
-            'for-nullable-users' => 3,
-            'for-null' => 4,
+            'user' => 1,
+            'nullable-user' => 2,
+            'mixed' => 4,
+            'none' => 5,
         ], $features);
         $this->assertCount(2, DB::getQueryLog());
     }
 
-    public function test_scopedFeatureDoesNotBelongToScope_active_returnsFalse(): void
+    public function testDoesNotActivateFeatureForWrongScopeType(): void
     {
+        // TODO should this throw an exception instead?
         Feature::define('for-teams', fn (Team $team) => true);
 
         $result = Feature::for(new User)->active('for-teams');
@@ -1599,27 +1604,34 @@ class DatabaseDriverTest extends TestCase
         $this->assertNull(DB::table('features')->first());
     }
 
-    public function test_featuresNotBelongingToRequestedScope_values_ReturnsFalseForThoseScopes(): void
+    public function testCanRetrieveSpecificFeaturesForGivenScope(): void
     {
-        // Given features with varying scopes
-        Feature::define('foo', fn (User $user) => true);
-        Feature::define('bar', fn (Team $team) => true);
-        Feature::define('zed', fn (mixed $v) => true);
-        Feature::define('elephant', fn ($v) => true);
-        Feature::define('cat', fn (array $t) => true);
-        Feature::define('woof', fn (string $str) => true);
+        Feature::define('user', fn (User $user) => 1);
+        Feature::define('nullable-user', fn (?User $user) => 2);
+        Feature::define('team', fn (Team $team) => 3);
+        Feature::define('mixed', fn (mixed $v) => 4);
+        Feature::define('none', fn ($v) => 5);
+        Feature::define('array', fn (array $t) => 6);
+        Feature::define('string', fn (string $str) => 7);
 
-        // When
-        $features = Feature::for(new User)->values(['foo', 'bar', 'zed', 'elephant', 'cat', 'woof']);
+        $features = Feature::for(new User)->values([
+            'user',
+            'nullable-user',
+            'team',
+            'mixed',
+            'none',
+            'array',
+            'string',
+        ]);
 
-        // Then
-        $this->assertEqualsCanonicalizing([
-            'foo' => true,
-            'bar' => false,
-            'zed' => true,
-            'elephant' => true,
-            'cat' => false,
-            'woof' => false,
+        $this->assertSame([
+            'user' => 1,
+            'nullable-user' => 2,
+            'team' => false,
+            'mixed' => 4,
+            'none' => 5,
+            'array' => false,
+            'string' => false,
         ], $features);
     }
 
