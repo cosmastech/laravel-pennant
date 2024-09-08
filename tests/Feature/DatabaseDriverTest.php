@@ -1635,29 +1635,23 @@ class DatabaseDriverTest extends TestCase
         ], $features);
     }
 
-    public function test_featuresNotBelongingToScope_someAreActive_treatsScopesAsFalse(): void
+    public function testCanCheckSomeAreActiveForScopeNotMatchingDefinition(): void
     {
-        // Given features with varying scopes
-        Feature::define('for-teams', fn (Team $team) => true);
-        Feature::define('for-nullable', fn () => false);
+        Feature::define('team', fn (Team $team) => true);
+        Feature::define('none', fn () => false);
 
-        // When
-        $result = Feature::for(new User)->someAreActive(['for-teams', 'for-nullable']);
+        $result = Feature::for(new User)->someAreActive(['team', 'none']);
 
-        // Then
         $this->assertFalse($result);
     }
 
-    public function test_featuresNotBelongingToScope_allAreActive_treatsScopesAsFalse(): void
+    public function testCanCheckAllAreActiveForScopeNotMatchingDefinition(): void
     {
-        // Given features with varying scopes
-        Feature::define('for-team', fn (Team $team) => true);
-        Feature::define('for-user', fn (User $user) => true);
+        Feature::define('team', fn (Team $team) => true);
+        Feature::define('user', fn (User $user) => true);
 
-        // When
-        $result = Feature::for(new User)->allAreActive(['for-team', 'for-user']);
+        $result = Feature::for(new User)->allAreActive(['team', 'user']);
 
-        // Then
         $this->assertFalse($result);
     }
 
