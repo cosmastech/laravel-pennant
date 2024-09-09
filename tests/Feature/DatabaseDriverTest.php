@@ -1571,7 +1571,7 @@ class DatabaseDriverTest extends TestCase
         ], $records[3]);
     }
 
-    public function testCanRetrieveAllFeaturesForGivenScope(): void
+    public function testCanRetrieveAllFeaturesForDifferingScopeTypes(): void
     {
         Feature::define('user', fn (User $user) => 1);
         Feature::define('nullable-user', fn (?User $user) => 2);
@@ -1590,21 +1590,21 @@ class DatabaseDriverTest extends TestCase
             'none' => 5,
         ], $features);
         $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(4, DB::table('features')->get());
     }
 
-    public function testDoesNotActivateFeatureForWrongScopeType(): void
+    public function testCanHandleCheckingFeatureIsActiveForIncorrectScopeType(): void
     {
-        // TODO should this throw an exception instead?
-        Feature::define('for-teams', fn (Team $team) => true);
+        Feature::define('team', fn (Team $team) => true);
 
-        $result = Feature::for(new User)->active('for-teams');
+        $result = Feature::for(new User)->active('team');
 
         $this->assertFalse($result);
         $this->assertCount(1, DB::getQueryLog());
         $this->assertNull(DB::table('features')->first());
     }
 
-    public function testCanRetrieveSpecificFeaturesForGivenScope(): void
+    public function testCanRetrieveSpecificFeaturesForDifferingScopeTypes(): void
     {
         Feature::define('user', fn (User $user) => 1);
         Feature::define('nullable-user', fn (?User $user) => 2);
@@ -1633,41 +1633,48 @@ class DatabaseDriverTest extends TestCase
             'array' => false,
             'string' => false,
         ], $features);
+        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(4, DB::table('features')->get());
     }
 
-    public function testCanCheckSomeAreActiveForScopeNotMatchingDefinition(): void
+    public function testCanCheckSomeAreActiveForScopeIncorrectScopeType(): void
     {
         Feature::define('team', fn (Team $team) => true);
+        Feature::define('user', fn (User $user) => false);
         Feature::define('none', fn () => false);
 
-        $result = Feature::for(new User)->someAreActive(['team', 'none']);
+        $result = Feature::for(new User)->someAreActive(['team', 'user', 'none']);
 
         $this->assertFalse($result);
+        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(2, DB::table('features')->get());
     }
 
-    public function testCanCheckAllAreActiveForScopeNotMatchingDefinition(): void
+    public function testCanCheckAllAreActiveForScopeIncorrectScopeType(): void
     {
         Feature::define('team', fn (Team $team) => true);
         Feature::define('user', fn (User $user) => true);
+        Feature::define('none', fn ($user) => true);
 
-        $result = Feature::for(new User)->allAreActive(['team', 'user']);
+        $result = Feature::for(new User)->allAreActive(['team', 'user', 'none']);
 
         $this->assertFalse($result);
+        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(2, DB::table('features')->get());
     }
 
     public function test_featuresNotBelongingToScope_someAreInactive_treatsScopesAsFalse(): void
     {
-        // Given features with varying scopes
-        Feature::define('for-teams', fn (Team $team) => true);
-        Feature::define('for-user', fn (User $user) => true);
-        Feature::define('for-null-scope', fn () => true);
+        Feature::define('team', fn (Team $team) => true);
+        Feature::define('user', fn (User $user) => true);
+        Feature::define('none', fn () => true);
 
-        // When
         $result = Feature::for(new User)->someAreInactive([
-            'for-teams', 'for-user', 'for-null-scope',
+            'team',
+            'user',
+            'none',
         ]);
 
-        // Then
         $this->assertTrue($result);
     }
 
