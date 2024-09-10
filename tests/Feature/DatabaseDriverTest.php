@@ -1699,21 +1699,16 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(1, DB::table('features')->get());
     }
 
-    public function test_featuresNotBelongingToScope_eagerLoaded_returnsFalseThatScopeIsActive(): void
+    public function testCanEagerLoadFeaturesForWrongScopeType(): void
     {
-        // Given
-        Feature::define('for-teams', fn (Team $team) => true);
-        Feature::define('for-user', fn (User $user) => false);
-        Feature::define('for-null-scope', fn () => false);
+        Feature::define('team', fn (Team $team) => true);
+        Feature::for([$user = new User])->load(['team']);
 
-        // And we have eager loaded scopes
-        Feature::for([$user = new User])->load(['for-teams']);
+        $result = Feature::for($user)->active('team');
 
-        // When
-        $result = Feature::for($user)->active('for-teams');
-
-        // Then
         $this->assertFalse($result);
+        $this->assertCount(0, DB::getQueryLog());
+        $this->assertCount(0, DB::table('features')->get());
     }
 
     public function test_featuresNotBelongingToScope_rawValues_doesNotReplaceFeatureDoesNotMatchScope(): void
