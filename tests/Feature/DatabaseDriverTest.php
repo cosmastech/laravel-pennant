@@ -1637,7 +1637,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(4, DB::table('features')->get());
     }
 
-    public function testCanCheckSomeAreActiveForScopeIncorrectScopeType(): void
+    public function testCanCheckSomeAreActiveForIncorrectScopeType(): void
     {
         Feature::define('team', fn (Team $team) => true);
         Feature::define('user', fn (User $user) => false);
@@ -1650,7 +1650,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(2, DB::table('features')->get());
     }
 
-    public function testCanCheckAllAreActiveForScopeIncorrectScopeType(): void
+    public function testCanCheckAllAreActiveForIncorrectScopeType(): void
     {
         Feature::define('team', fn (Team $team) => true);
         Feature::define('user', fn (User $user) => true);
@@ -1663,7 +1663,7 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(2, DB::table('features')->get());
     }
 
-    public function testCanCheckSomeAreActiveForScopeIncorrectScopeTypeAndReturnsFalse(): void
+    public function testCanCheckSomeAreActiveForIncorrectScopeTypeAndReturnsFalse(): void
     {
         Feature::define('team', fn (Team $team) => true);
         Feature::define('user', fn (User $user) => true);
@@ -1682,18 +1682,21 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(1, DB::table('features')->get());
     }
 
-    public function test_featuresNotBelongingToScope_allAreInactive_treatsScopesAsFalse(): void
+    public function testCanCheckAllAreInactiveForIncorrectScopeTypeAndReturnsTrue(): void
     {
-        // Given features with varying scopes
-        Feature::define('for-teams', fn (Team $team) => true);
-        Feature::define('for-user', fn (User $user) => false);
-        Feature::define('for-null-scope', fn () => false);
+        Feature::define('team', fn (Team $team) => true);
+        Feature::define('user', fn (User $user) => false);
+        Feature::define('none', fn () => false);
 
-        // When
-        $result = Feature::for(new User)->allAreInactive(['for-teams', 'for-user', 'for-null-scope']);
+        $result = Feature::for(new User)->allAreInactive([
+            'team',
+            'user',
+            'none',
+        ]);
 
-        // Then
         $this->assertTrue($result);
+        $this->assertCount(2, DB::getQueryLog());
+        $this->assertCount(1, DB::table('features')->get());
     }
 
     public function test_featuresNotBelongingToScope_eagerLoaded_returnsFalseThatScopeIsActive(): void
