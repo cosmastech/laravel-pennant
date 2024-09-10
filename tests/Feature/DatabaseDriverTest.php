@@ -1663,19 +1663,23 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(2, DB::table('features')->get());
     }
 
-    public function test_featuresNotBelongingToScope_someAreInactive_treatsScopesAsFalse(): void
+    public function testCanCheckSomeAreActiveForScopeIncorrectScopeTypeAndReturnsFalse(): void
     {
         Feature::define('team', fn (Team $team) => true);
         Feature::define('user', fn (User $user) => true);
         Feature::define('none', fn () => true);
 
-        $result = Feature::for(new User)->someAreInactive([
+        $active = Feature::for(new User)->active('user');
+        $someInactive = Feature::for(new User)->someAreInactive([
             'team',
             'user',
             'none',
         ]);
 
-        $this->assertTrue($result);
+        $this->assertTrue($active);
+        $this->assertTrue($someInactive);
+        $this->assertCount(3, DB::getQueryLog());
+        $this->assertCount(1, DB::table('features')->get());
     }
 
     public function test_featuresNotBelongingToScope_allAreInactive_treatsScopesAsFalse(): void
