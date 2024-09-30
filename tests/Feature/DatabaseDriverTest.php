@@ -1713,12 +1713,10 @@ class DatabaseDriverTest extends TestCase
 
     public function test_featuresNotBelongingToScope_rawValues_doesNotReplaceFeatureDoesNotMatchScope(): void
     {
-        // Given
-        Feature::define('for-string', fn (string $str) => true);
-        Feature::define('for-user', fn (User $user) => true);
-        Feature::define('for-null-scope', fn () => false);
+        Feature::define('string', fn (string $str) => true);
+        Feature::define('user', fn (User $user) => true);
+        Feature::define('none', fn () => false);
 
-        // When
         $rawValues = Feature::for(new User)->rawValues(['for-string', 'for-user', 'for-null-scope']);
 
         // Then
