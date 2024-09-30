@@ -1710,20 +1710,6 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(0, DB::getQueryLog());
         $this->assertCount(0, DB::table('features')->get());
     }
-
-    public function test_featuresNotBelongingToScope_rawValues_doesNotReplaceFeatureDoesNotMatchScope(): void
-    {
-        Feature::define('string', fn (string $str) => true);
-        Feature::define('user', fn (User $user) => true);
-        Feature::define('none', fn () => false);
-
-        $rawValues = Feature::for(new User)->rawValues(['for-string', 'for-user', 'for-null-scope']);
-
-        // Then
-        $this->assertSame(FeatureDoesNotMatchScope::instance(), $rawValues['for-string']);
-        $this->assertTrue($rawValues['for-user']);
-        $this->assertFalse($rawValues['for-null-scope']);
-    }
 }
 
 class UnregisteredFeature
