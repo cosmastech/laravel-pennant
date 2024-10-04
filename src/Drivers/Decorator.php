@@ -556,7 +556,12 @@ class Decorator implements CanListStoredFeatures, Driver
     }
 
     /**
+     * Retrieve the defined features for the given scope.
+     *
      * @internal
+     *
+     * @param  mixed  $scope
+     * @return \Illuminate\Support\Collection<int, string>
      */
     public function definedFeaturesForScope($scope)
     {
