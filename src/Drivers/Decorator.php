@@ -21,7 +21,6 @@ use Laravel\Pennant\Events\FeaturesPurged;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
-use Laravel\Pennant\Exceptions\InvalidScopeException;
 use Laravel\Pennant\Feature;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
@@ -29,7 +28,6 @@ use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionFunction;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
-use TypeError;
 
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
@@ -173,19 +171,8 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function resolve($feature, $resolver, $scope)
     {
-        $value = false;
+        $value = $resolver($scope);
 
-        try {
-            $value = $resolver($scope);
-        } catch (TypeError $e) {
-            if ($this->isResolverValidForScope($resolver, $scope)) {
-                throw $e;
-            }
-
-            throw new InvalidScopeException('Whoops!', code: 0, previous: $e);
-        }
-
-        // TODO handle lotteries.
         $value = $value instanceof Lottery ? $value() : $value;
 
         Event::dispatch(new FeatureResolved($feature, $scope, $value));
@@ -219,6 +206,8 @@ class Decorator implements CanListStoredFeatures, Driver
         if (($name = $type->getName()) === 'mixed') {
             return true;
         }
+
+        // todo handle lotteries
 
         return is_a($scope, $name);
     }
