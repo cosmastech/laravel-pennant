@@ -208,6 +208,7 @@ class Decorator implements CanListStoredFeatures, Driver
         }
 
         // todo handle lotteries
+        // todo non object scope
 
         return is_a($scope, $name);
     }
@@ -215,7 +216,7 @@ class Decorator implements CanListStoredFeatures, Driver
     /**
      * Determine if the resolver accepts null scope.
      *
-     * @param  callable|ReflectionFunction  $resolver
+     * @param  callable|\ReflectionFunction  $resolver
      * @return bool
      */
     protected function canHandleNullScope($resolver)
