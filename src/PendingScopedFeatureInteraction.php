@@ -100,19 +100,6 @@ class PendingScopedFeatureInteraction
      */
     public function values($features)
     {
-        return Collection::make($this->rawValues($features))
-            ->mapWithKeys(fn ($value, $key) => [$key => $this->fromRaw($value)])
-            ->all();
-    }
-
-    /**
-     * Get the values of the flag(s) without replacing FeatureDoesNotMatchScope values.
-     *
-     * @param  array<string>  $features
-     * @return array<string, mixed>
-     */
-    protected function rawValues($features)
-    {
         if (count($this->scope()) > 1) {
             throw new RuntimeException('It is not possible to retrieve the values for multiple scopes.');
         }
@@ -167,7 +154,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($features)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => $this->fromRaw($this->driver->get(...$bits)) !== false);
+            ->every(fn ($bits) => $this->driver->get(...$bits) !== false);
     }
 
     /**
@@ -182,7 +169,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
-                ->some(fn ($feature) => $this->fromRaw($this->driver->get($feature, $scope)) !== false));
+                ->some(fn ($feature) => $this->driver->get($feature, $scope) !== false));
     }
 
     /**
@@ -208,7 +195,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($features)
             ->crossJoin($this->scope())
-            ->every(fn ($bits) => $this->fromRaw($this->driver->get(...$bits)) === false);
+            ->every(fn ($bits) => $this->driver->get(...$bits) === false);
     }
 
     /**
@@ -223,7 +210,7 @@ class PendingScopedFeatureInteraction
 
         return Collection::make($this->scope())
             ->every(fn ($scope) => Collection::make($features)
-                ->some(fn ($feature) => $this->fromRaw($this->driver->get($feature, $scope)) === false));
+                ->some(fn ($feature) => $this->driver->get($feature, $scope) === false));
     }
 
     /**
@@ -306,16 +293,5 @@ class PendingScopedFeatureInteraction
     protected function scope()
     {
         return $this->scope ?: [null];
-    }
-
-    /**
-     * Replace FeatureDoesNotMatchScope with false.
-     *
-     * @param  mixed  $value
-     * @return false|mixed
-     */
-    protected function fromRaw($value)
-    {
-        return $value instanceof FeatureDoesNotMatchScope ? false : $value;
     }
 }
