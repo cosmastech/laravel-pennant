@@ -77,8 +77,9 @@ class PendingScopedFeatureInteraction
      */
     public function loadAll()
     {
-        // todo
-        return $this->load($this->driver->defined());
+        return $this->load(
+            $this->driver->definedFeaturesForScope($this->scope[0])
+        );
     }
 
     /**
