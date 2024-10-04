@@ -120,15 +120,9 @@ class PendingScopedFeatureInteraction
      */
     public function all()
     {
-        $features = collect($this->driver->nameMap)
-            ->only($this->driver->defined())
-            ->filter(fn ($resolver) => $this->driver->isResolverValidForScope($resolver, $this->scope[0] ?? null));
-
-        $this->loadMissing($features->keys());
-
-        return $features->keys()->mapWithKeys(fn ($feature) => [
-            $this->driver->name($feature) => $this->driver->get($feature, $this->scope()[0]),
-        ])->all();
+        return $this->values(
+            $this->driver->definedFeaturesForScope($this->scope[0])
+        );
     }
 
     /**

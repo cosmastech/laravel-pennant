@@ -78,7 +78,7 @@ class Decorator implements CanListStoredFeatures, Driver
      *
      * @var array<string, mixed>
      */
-    public $nameMap = [];
+    protected $nameMap = [];
 
     /**
      * Create a new driver decorator instance.
@@ -553,6 +553,17 @@ class Decorator implements CanListStoredFeatures, Driver
         }
 
         return fn () => $feature;
+    }
+
+    /**
+     * @internal
+     */
+    public function definedFeaturesForScope($scope)
+    {
+        return collect($this->nameMap)
+            ->only($this->defined())
+            ->filter(fn ($resolver) => $this->isResolverValidForScope($resolver, $scope))
+            ->keys();
     }
 
     /**
