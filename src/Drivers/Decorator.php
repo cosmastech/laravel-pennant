@@ -18,18 +18,18 @@ use Laravel\Pennant\Events\FeatureDeleted;
 use Laravel\Pennant\Events\FeatureResolved;
 use Laravel\Pennant\Events\FeatureRetrieved;
 use Laravel\Pennant\Events\FeaturesPurged;
-use Laravel\Pennant\Events\FeatureUnavailableForScope;
 use Laravel\Pennant\Events\FeatureUpdated;
 use Laravel\Pennant\Events\FeatureUpdatedForAllScopes;
 use Laravel\Pennant\Events\UnexpectedNullScopeEncountered;
+use Laravel\Pennant\Exceptions\InvalidScopeException;
 use Laravel\Pennant\Feature;
-use Laravel\Pennant\FeatureDoesNotMatchScope;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
 use ReflectionFunction;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
+use TypeError;
 
 /**
  * @mixin \Laravel\Pennant\PendingScopedFeatureInteraction
@@ -80,7 +80,7 @@ class Decorator implements CanListStoredFeatures, Driver
      *
      * @var array<string, mixed>
      */
-    protected $nameMap = [];
+    public $nameMap = [];
 
     /**
      * Create a new driver decorator instance.
@@ -173,14 +173,19 @@ class Decorator implements CanListStoredFeatures, Driver
      */
     protected function resolve($feature, $resolver, $scope)
     {
-        if (! $this->isResolverValidForScope($resolver, $scope)) {
-            Event::dispatch(new FeatureUnavailableForScope($feature, $scope));
+        $value = false;
 
-            return FeatureDoesNotMatchScope::instance();
+        try {
+            $value = $resolver($scope);
+        } catch (TypeError $e) {
+            if ($this->isResolverValidForScope($resolver, $scope)) {
+                throw $e;
+            }
+
+            throw new InvalidScopeException('Whoops!', code: 0, previous: $e);
         }
 
-        $value = $resolver($scope);
-
+        // TODO handle lotteries.
         $value = $value instanceof Lottery ? $value() : $value;
 
         Event::dispatch(new FeatureResolved($feature, $scope, $value));
@@ -195,7 +200,7 @@ class Decorator implements CanListStoredFeatures, Driver
      * @param  mixed  $scope
      * @return bool
      */
-    protected function isResolverValidForScope($resolver, $scope)
+    public function isResolverValidForScope($resolver, $scope)
     {
         $function = new ReflectionClosure(Closure::fromCallable($resolver));
 

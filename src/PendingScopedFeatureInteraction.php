@@ -77,6 +77,7 @@ class PendingScopedFeatureInteraction
      */
     public function loadAll()
     {
+        // todo
         return $this->load($this->driver->defined());
     }
 
@@ -132,9 +133,15 @@ class PendingScopedFeatureInteraction
      */
     public function all()
     {
-        return Collection::make($this->rawValues($this->driver->defined()))
-            ->reject(fn ($feature) => $feature instanceof FeatureDoesNotMatchScope)
-            ->all();
+        $features = collect($this->driver->nameMap)
+            ->only($this->driver->defined())
+            ->filter(fn ($resolver) => $this->driver->isResolverValidForScope($resolver, $this->scope[0] ?? null));
+
+        $this->loadMissing($features->keys());
+
+        return $features->keys()->mapWithKeys(fn ($feature) => [
+            $this->driver->name($feature) => $this->driver->get($feature, $this->scope()[0]),
+        ])->all();
     }
 
     /**
