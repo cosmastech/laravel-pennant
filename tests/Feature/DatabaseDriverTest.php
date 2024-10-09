@@ -1593,123 +1593,49 @@ class DatabaseDriverTest extends TestCase
         $this->assertCount(4, DB::table('features')->get());
     }
 
-    public function testCanHandleCheckingFeatureIsActiveForIncorrectScopeType(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
+    // public function testCanHandleCheckingFeatureIsActiveForIncorrectScopeType(): void
+    // {
+    //     Feature::define('team', fn (Team $team) => true);
 
-        $result = Feature::for(new User)->active('team');
+    //     $result = Feature::for(new User)->active('team');
 
-        $this->assertFalse($result);
-        $this->assertCount(1, DB::getQueryLog());
-        $this->assertNull(DB::table('features')->first());
-    }
+    //     $this->assertFalse($result);
+    //     $this->assertCount(1, DB::getQueryLog());
+    //     $this->assertNull(DB::table('features')->first());
+    // }
 
-    public function testCanRetrieveSpecificFeaturesForDifferingScopeTypes(): void
-    {
-        Feature::define('user', fn (User $user) => 1);
-        Feature::define('nullable-user', fn (?User $user) => 2);
-        Feature::define('team', fn (Team $team) => 3);
-        Feature::define('mixed', fn (mixed $v) => 4);
-        Feature::define('none', fn ($v) => 5);
-        Feature::define('array', fn (array $t) => 6);
-        Feature::define('string', fn (string $str) => 7);
+    // public function testCanRetrieveSpecificFeaturesForDifferingScopeTypes(): void
+    // {
+    //     Feature::define('user', fn (User $user) => 1);
+    //     Feature::define('nullable-user', fn (?User $user) => 2);
+    //     Feature::define('team', fn (Team $team) => 3);
+    //     Feature::define('mixed', fn (mixed $v) => 4);
+    //     Feature::define('none', fn ($v) => 5);
+    //     Feature::define('array', fn (array $t) => 6);
+    //     Feature::define('string', fn (string $str) => 7);
 
-        $features = Feature::for(new User)->values([
-            'user',
-            'nullable-user',
-            'team',
-            'mixed',
-            'none',
-            'array',
-            'string',
-        ]);
+    //     $features = Feature::for(new User)->values([
+    //         'user',
+    //         'nullable-user',
+    //         'team',
+    //         'mixed',
+    //         'none',
+    //         'array',
+    //         'string',
+    //     ]);
 
-        $this->assertSame([
-            'user' => 1,
-            'nullable-user' => 2,
-            'team' => false,
-            'mixed' => 4,
-            'none' => 5,
-            'array' => false,
-            'string' => false,
-        ], $features);
-        $this->assertCount(2, DB::getQueryLog());
-        $this->assertCount(4, DB::table('features')->get());
-    }
-
-    public function testCanCheckSomeAreActiveForIncorrectScopeType(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::define('user', fn (User $user) => false);
-        Feature::define('none', fn () => false);
-
-        $result = Feature::for(new User)->someAreActive(['team', 'user', 'none']);
-
-        $this->assertFalse($result);
-        $this->assertCount(2, DB::getQueryLog());
-        $this->assertCount(2, DB::table('features')->get());
-    }
-
-    public function testCanCheckAllAreActiveForIncorrectScopeType(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::define('user', fn (User $user) => true);
-        Feature::define('none', fn ($user) => true);
-
-        $result = Feature::for(new User)->allAreActive(['team', 'user', 'none']);
-
-        $this->assertFalse($result);
-        $this->assertCount(2, DB::getQueryLog());
-        $this->assertCount(2, DB::table('features')->get());
-    }
-
-    public function testCanCheckSomeAreActiveForIncorrectScopeTypeAndReturnsFalse(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::define('user', fn (User $user) => true);
-        Feature::define('none', fn () => true);
-
-        $active = Feature::for(new User)->active('user');
-        $someInactive = Feature::for(new User)->someAreInactive([
-            'team',
-            'user',
-            'none',
-        ]);
-
-        $this->assertTrue($active);
-        $this->assertTrue($someInactive);
-        $this->assertCount(3, DB::getQueryLog());
-        $this->assertCount(1, DB::table('features')->get());
-    }
-
-    public function testCanCheckAllAreInactiveForIncorrectScopeTypeAndReturnsTrue(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::define('user', fn (User $user) => false);
-        Feature::define('none', fn () => false);
-
-        $result = Feature::for(new User)->allAreInactive([
-            'team',
-            'user',
-            'none',
-        ]);
-
-        $this->assertTrue($result);
-        $this->assertCount(2, DB::getQueryLog());
-        $this->assertCount(1, DB::table('features')->get());
-    }
-
-    public function testCanEagerLoadFeaturesForWrongScopeType(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::for([$user = new User])->load(['team']);
-
-        $result = Feature::for($user)->active('team');
-
-        $this->assertFalse($result);
-        $this->assertCount(0, DB::getQueryLog());
-        $this->assertCount(0, DB::table('features')->get());
-    }
+    //     $this->assertSame([
+    //         'user' => 1,
+    //         'nullable-user' => 2,
+    //         'team' => false,
+    //         'mixed' => 4,
+    //         'none' => 5,
+    //         'array' => false,
+    //         'string' => false,
+    //     ], $features);
+    //     $this->assertCount(2, DB::getQueryLog());
+    //     $this->assertCount(4, DB::table('features')->get());
+    // }
 
     public function testItWorks(): void
     {

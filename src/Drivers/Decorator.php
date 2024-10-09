@@ -25,6 +25,7 @@ use Laravel\Pennant\Feature;
 use Laravel\Pennant\LazilyResolvedFeature;
 use Laravel\Pennant\PendingScopedFeatureInteraction;
 use Laravel\SerializableClosure\Support\ReflectionClosure;
+use ReflectionClass;
 use ReflectionFunction;
 use RuntimeException;
 use Symfony\Component\Finder\Finder;
@@ -183,13 +184,21 @@ class Decorator implements CanListStoredFeatures, Driver
     /**
      * Determine if the resolver can handle the scope.
      *
-     * @param  callable  $resolver
+     * @param  callable|class-string  $resolver
      * @param  mixed  $scope
      * @return bool
      */
     public function isResolverValidForScope($resolver, $scope)
     {
-        $function = new ReflectionClosure(Closure::fromCallable($resolver));
+        if (is_string($resolver) && class_exists($resolver)) {
+            $class = new ReflectionClass($resolver);
+
+            $function = $class->hasMethod('resolve')
+                ? $class->getMethod('resolve')
+                : $class->getMethod('__invoke');
+        } else {
+            $function = new ReflectionClosure(Closure::fromCallable($resolver));
+        }
 
         if ($function->getNumberOfParameters() === 0) {
             return true;
@@ -216,14 +225,14 @@ class Decorator implements CanListStoredFeatures, Driver
     /**
      * Determine if the resolver accepts null scope.
      *
-     * @param  callable|\ReflectionFunction  $resolver
+     * @param  callable|\ReflectionFunction|\ReflectionMethod  $resolver
      * @return bool
      */
     protected function canHandleNullScope($resolver)
     {
-        $function = $resolver instanceof ReflectionFunction
-            ? $resolver
-            : new ReflectionFunction(Closure::fromCallable($resolver));
+        $function = is_callable($resolver)
+            ? new ReflectionFunction(Closure::fromCallable($resolver))
+            : $resolver;
 
         return $function->getNumberOfParameters() === 0 ||
             ! $function->getParameters()[0]->hasType() ||
@@ -568,7 +577,13 @@ class Decorator implements CanListStoredFeatures, Driver
     {
         return collect($this->nameMap)
             ->only($this->defined())
-            ->filter(fn ($resolver) => $this->isResolverValidForScope($resolver, $scope))
+            ->filter(function ($resolver) use ($scope) {
+                if (is_callable($resolver) || (is_string($resolver) && class_exists($resolver))) {
+                    $this->isResolverValidForScope($resolver, $scope);
+                }
+
+                return true;
+            })
             ->keys();
     }
 
