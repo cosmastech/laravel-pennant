@@ -579,7 +579,7 @@ class Decorator implements CanListStoredFeatures, Driver
             ->only($this->defined())
             ->filter(function ($resolver) use ($scope) {
                 if (is_callable($resolver) || (is_string($resolver) && class_exists($resolver))) {
-                    $this->isResolverValidForScope($resolver, $scope);
+                    return $this->isResolverValidForScope($resolver, $scope);
                 }
 
                 return true;
