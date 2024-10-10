@@ -208,18 +208,24 @@ class Decorator implements CanListStoredFeatures, Driver
             return true;
         }
 
-        if (! $type = $function->getParameters()[0]->getType()) {
+        $type = $function->getParameters()[0]->getType();
+
+        if ($type === null || $type->getName() === 'mixed') {
             return true;
         }
 
-        if (($name = $type->getName()) === 'mixed') {
-            return true;
-        }
-
-        // todo handle lotteries
-        // todo non object scope
-
-        return is_a($scope, $name);
+        return match (gettype($scope)) {
+            'NULL',
+            'boolean',
+            'integer',
+            'double',
+            'string',
+            'array',
+            'resource',
+            'resource (closed)' => gettype($scope) === $type->getName(),
+            'object' => $scope instanceof ($type->getName()),
+            'unknown type' => false,
+        };
     }
 
     /**

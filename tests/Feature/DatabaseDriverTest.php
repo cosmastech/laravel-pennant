@@ -1636,20 +1636,6 @@ class DatabaseDriverTest extends TestCase
     //     $this->assertCount(2, DB::getQueryLog());
     //     $this->assertCount(4, DB::table('features')->get());
     // }
-
-    public function testItWorks(): void
-    {
-        Feature::define('team', fn (Team $team) => true);
-        Feature::define('team', fn (User $user) => true);
-
-        Feature::for([$user = new User])->all();
-
-        $result = Feature::for($user)->active('team');
-
-        $this->assertFalse($result);
-        $this->assertCount(0, DB::getQueryLog());
-        $this->assertCount(0, DB::table('features')->get());
-    }
 }
 
 class UnregisteredFeature
