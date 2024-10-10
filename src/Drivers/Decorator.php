@@ -204,18 +204,15 @@ class Decorator implements CanListStoredFeatures, Driver
             return true;
         }
 
-        if ($scope === null && $this->canHandleNullScope($function)) {
-            return true;
-        }
-
         $type = $function->getParameters()[0]->getType();
 
         if ($type === null || $type->getName() === 'mixed') {
             return true;
         }
 
+        // TODO intersection / union types
+
         return match (gettype($scope)) {
-            'NULL',
             'boolean',
             'integer',
             'double',
@@ -223,6 +220,7 @@ class Decorator implements CanListStoredFeatures, Driver
             'array',
             'resource',
             'resource (closed)' => gettype($scope) === $type->getName(),
+            'NULL' => $this->canHandleNullScope($function),
             'object' => $scope instanceof ($type->getName()),
             'unknown type' => false,
         };
